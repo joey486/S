@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>S Language Emulator</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #eee; padding: 20px; }
+    textarea { width: 100%; height: 200px; background: #222; color: #0f0; border: none; padding: 10px; margin-bottom: 10px; }
+    button { padding: 10px 20px; background: #444; color: #fff; border: none; cursor: pointer; }
+    pre { background: #222; padding: 10px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>S Language Emulator</h1>
+  <textarea id="code" placeholder="Enter your S code here...\nExample:\n[X]\nX <- X + 1\nY <- Y + 1\nIF X != Y GOTO X"></textarea>
+  <button onclick="runCode()">Run</button>
+  <pre id="output"></pre>
+
+  <a href="https://portfolio-z2hk.onrender.com/" target="_blank"  
+    style="position: fixed; bottom: 10px; right: 50%; color: #0ff;">My Portfolio</a>
+  <script src="main.js"></script>
+</body>
+</html>
