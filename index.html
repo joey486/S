@@ -5,20 +5,174 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>S Language Emulator</title>
   <style>
-    body { font-family: monospace; background: #111; color: #eee; padding: 20px; }
-    textarea { width: 100%; height: 200px; background: #222; color: #0f0; border: none; padding: 10px; margin-bottom: 10px; }
-    button { padding: 10px 20px; background: #444; color: #fff; border: none; cursor: pointer; }
-    pre { background: #222; padding: 10px; white-space: pre-wrap; }
+    :root {
+      --bg: #111;
+      --text: #eee;
+      --textarea-bg: #222;
+      --textarea-text: #0f0;
+      --btn-bg: #444;
+      --btn-text: #fff;
+      --highlight: #0ff;
+    }
+
+    .light-mode {
+      --bg: #fafafa;
+      --text: #111;
+      --textarea-bg: #f0f0f0;
+      --textarea-text: #222;
+      --btn-bg: #ddd;
+      --btn-text: #000;
+      --highlight: #06c;
+    }
+
+    body {
+      font-family: monospace;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      background: var(--textarea-bg);
+      color: var(--textarea-text);
+      border: none;
+      padding: 10px;
+      margin-bottom: 10px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    pre {
+      background: var(--textarea-bg);
+      padding: 10px;
+      white-space: pre-wrap;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    a.portfolio {
+      position: fixed;
+      bottom: 10px;
+      right: 50%;
+      transform: translateX(50%);
+      color: var(--highlight);
+      text-decoration: none;
+      font-size: 0.9em;
+    }
   </style>
 </head>
 <body>
   <h1>S Language Emulator</h1>
-  <textarea id="code" placeholder="Enter your S code here...\nExample: [X] or X <- X + 1 or Y <- Y + 1 or IF X != Y GOTO X"></textarea>
-  <button onclick="runCode()">Run</button>
+  <textarea id="code" placeholder="Enter your S code here... Example: [X] or X <- X + 1 or Y <- Y + 1 or IF X != Y GOTO X"></textarea>
+  <div>
+    <button onclick="runCode()">Run</button>
+    <button onclick="toggleTheme()">Toggle Theme</button>
+  </div>
   <pre id="output"></pre>
 
-  <a href="https://portfolio-z2hk.onrender.com/" target="_blank"  
-    style="position: fixed; bottom: 10px; right: 50%; color: #0ff;">My Portfolio</a>
-  <script src="main.js"></script>
+  <a class="portfolio" href="https://portfolio-z2hk.onrender.com/" target="_blank">My Portfolio</a>
+
+  <script>
+    function runCode() {
+      const code = document.getElementById("code").value;
+      const output = document.getElementById("output");
+      const lines = code.split("\n").map(l => l.trim()).filter(l => l !== "");
+      const registers = {};
+      let labels = {};
+      let pc = 0;
+      let steps = 0;
+      const maxSteps = 10000;
+      output.textContent = "";
+
+      // First pass: collect labels
+      lines.forEach((line, idx) => {
+        const labelMatch = line.match(/^\[(\w+)\]$/);
+        if (labelMatch) {
+          labels[labelMatch[1]] = idx;
+        }
+      });
+
+      // Second pass: execute
+      while (pc < lines.length && steps < maxSteps) {
+        let line = lines[pc];
+
+        // Skip label lines
+        if (/^\[\w+\]$/.test(line)) { pc++; continue; }
+
+        let match;
+
+        // Handle increment/decrement or copy
+        match = line.match(/^(\w+)\s*<-\s*(\w+)\s*([+-])\s*(\d+)$/);
+        if (match) {
+          const [_, target, source, op, numStr] = match;
+          const delta = parseInt(numStr);
+          const val = registers[source] || 0;
+          registers[target] = op === '+' ? val + delta : Math.max(val - delta, 0);
+          pc++;
+          steps++;
+          continue;
+        }
+
+        // Handle GOTO
+        match = line.match(/^GOTO\s+(\w+)$/);
+        if (match) {
+          const label = match[1];
+          pc = labels[label] ?? -1;
+          if (pc === -1) {
+            output.textContent += `Label not found: ${label}\n`;
+            break;
+          }
+          steps++;
+          continue;
+        }
+
+        // Handle conditional GOTO with number or register
+        match = line.match(/^IF\s+(\w+)\s*(==|!=)\s*(\w+)\s+GOTO\s+(\w+)$/);
+        if (match) {
+          const [_, left, operator, right, label] = match;
+          const lval = registers[left] || 0;
+          const rval = isNaN(right) ? (registers[right] || 0) : parseInt(right);
+          const cond = operator === '==' ? lval === rval : lval !== rval;
+          if (cond) {
+            pc = labels[label] ?? -1;
+            if (pc === -1) {
+              output.textContent += `Label not found: ${label}\n`;
+              break;
+            }
+          } else {
+            pc++;
+          }
+          steps++;
+          continue;
+        }
+
+        output.textContent += `Invalid instruction at line ${pc + 1}: ${line}\n`;
+        break;
+      }
+
+      if (steps >= maxSteps) {
+        output.textContent += `\nProgram terminated after ${maxSteps} steps — possible infinite loop detected.\n`;
+      }
+
+      output.textContent += `\nFinal Register State:\n`;
+      for (const [reg, val] of Object.entries(registers)) {
+        output.textContent += `${reg} = ${val}\n`;
+      }
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+    }
+  </script>
 </body>
 </html>
