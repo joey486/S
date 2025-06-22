@@ -25,15 +25,6 @@ GOTO START
 ```
 ---
 
-## Try it out
-Open the web interface locally or host it yourself.  
-All logic is embedded in a single HTML file with no dependencies.
-
-Live example available in your portfolio:  
-[My Portfolio](https://portfolio-z2hk.onrender.com/)
-
----
-
 ## Related Reading
 - [Computability Theory - Wikipedia](https://en.wikipedia.org/wiki/Computability_theory)
 - [Register Machines (S-language) - Wikipedia](https://en.wikipedia.org/wiki/Register_machine)
